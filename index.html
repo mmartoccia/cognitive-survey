@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quick Survey</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .intro {
+    margin-bottom: 32px;
+    padding: 20px;
+    background: #1a1a2e;
+    border-radius: 12px;
+    border-left: 3px solid #4fc3f7;
+  }
+  .intro p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #b0b0b0;
+  }
+  .question-card {
+    background: #1a1a2e;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .question-card.active { display: block; }
+  .question-card h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #fff;
+    line-height: 1.4;
+  }
+  .question-card .qnum {
+    font-size: 12px;
+    color: #4fc3f7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    background: #0f0f1a;
+    border: 1.5px solid #2a2a3e;
+    border-radius: 10px;
+    color: #d0d0d0;
+    font-size: 15px;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .option:hover { border-color: #4fc3f7; background: #151528; }
+  .option.selected {
+    border-color: #4fc3f7;
+    background: #1a2a3e;
+    color: #fff;
+  }
+  .option.multi.selected {
+    border-color: #4fc3f7;
+    background: #1a2a3e;
+  }
+  .multi-hint {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 12px;
+    font-style: italic;
+  }
+  .progress {
+    width: 100%;
+    height: 3px;
+    background: #1a1a2e;
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+  .nav-btn {
+    display: inline-block;
+    padding: 12px 32px;
+    background: #4fc3f7;
+    color: #0a0a0f;
+    font-weight: 600;
+    font-size: 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.15s;
+  }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn:hover:not(:disabled) { background: #29b6f6; }
+  .nav-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; }
+  .back-btn {
+    background: none;
+    border: 1px solid #333;
+    color: #888;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .back-btn:hover { border-color: #555; color: #bbb; }
+  .done-screen {
+    text-align: center;
+    padding: 60px 20px;
+    display: none;
+  }
+  .done-screen h2 { font-size: 24px; margin-bottom: 12px; color: #4fc3f7; }
+  .done-screen p { color: #888; font-size: 15px; }
+  .checkmark { font-size: 48px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="intro" id="introBlock">
+    <p id="introText"></p>
+  </div>
+
+  <div id="questionsContainer"></div>
+
+  <div class="nav-row" id="navRow">
+    <button class="back-btn" id="backBtn" onclick="goBack()">← Back</button>
+    <button class="nav-btn" id="nextBtn" onclick="goNext()" disabled>Next →</button>
+  </div>
+
+  <div class="done-screen" id="doneScreen">
+    <div class="checkmark">✓</div>
+    <h2>Done. Thank you.</h2>
+    <p>Responses saved. You can close this page.</p>
+  </div>
+</div>
+
+<script>
+const SURVEYS = {
+  alpha: {
+    intro: "doing a self-improvement thing and want honest feedback from the people closest to me. no names stored anywhere, i won't see your raw answers -- my system just pulls patterns. takes about 5 min. be honest, that's the whole point.",
+    questions: [
+      {
+        q: "When I'm under pressure, I tend to:",
+        opts: [
+          "Talk more, take on more, speed up",
+          "Go quiet and disappear into a project",
+          "Get short or irritable",
+          "Seem exactly the same on the surface, but small things change",
+          "Cycle between several of these"
+        ]
+      },
+      {
+        q: "When I'm overwhelmed, the FIRST thing you notice is:",
+        opts: [
+          "You stop responding to messages as quickly",
+          "You forget small things -- errands, plans, details",
+          "You get hyperfocused on one thing and ignore everything else",
+          "Your sleep or eating changes",
+          "You start planning or building something new",
+          "I honestly can't tell when you're overwhelmed"
+        ]
+      },
+      {
+        q: "When I clearly need help, I usually:",
+        opts: [
+          "Ask directly",
+          "Hint at it but don't ask outright",
+          "Don't ask -- just handle it yourself",
+          "Don't ask, and sometimes things fall through because of it",
+          "Only ask one specific person"
+        ]
+      },
+      {
+        q: "To decompress, I most often:",
+        multi: true, max: 2,
+        opts: [
+          "Watch TV / media",
+          "Tinker with a project or build something",
+          "Exercise or something physical",
+          "Read or research something new",
+          "Social time -- friends, family, phone calls",
+          "Sleep",
+          "Don't really decompress -- just keep going"
+        ]
+      },
+      {
+        q: "How easy is it for me to be emotionally vulnerable?",
+        opts: [
+          "Very easy -- you share openly",
+          "You share, but only after processing it alone first",
+          "Rarely vulnerable -- I have to pull it out of you",
+          "You express it through actions rather than words",
+          "It depends on the topic"
+        ]
+      },
+      {
+        q: "Being my partner is like...",
+        opts: [
+          "Having a co-strategist -- we plan and build together",
+          "Having a protector -- always thinking ahead for the family",
+          "Having a whirlwind -- exciting but sometimes hard to keep up",
+          "Having a quiet anchor -- steady, reliable, doesn't show the stress",
+          "A mix that depends on what's happening"
+        ]
+      },
+      {
+        q: "The part of my inner life you have the LEAST access to is:",
+        opts: [
+          "Your work stress -- I hear about it after, not during",
+          "Your fears or worries about the future",
+          "What you're actually feeling in the moment",
+          "Your creative/project world -- always building something I only half-understand",
+          "Your political or philosophical thinking",
+          "I feel like I have pretty good access to all of it"
+        ]
+      },
+      {
+        q: "Who worries more about money?",
+        opts: [
+          "You worry more",
+          "I worry more",
+          "We worry about the same amount but different things",
+          "Neither of us worries much",
+          "It shifts depending on what's happening"
+        ]
+      },
+      {
+        q: "My relationship with money is best described as:",
+        opts: [
+          "Careful planner -- budgets, tracks, thinks long-term",
+          "Strategic spender -- spends with purpose but not impulsive",
+          "Anxious about it even when things are fine",
+          "Generous with others, tight with yourself",
+          "Doesn't think about it much day-to-day",
+          "Depends on the season of life"
+        ]
+      },
+      {
+        q: "My worldview has:",
+        opts: [
+          "Stayed pretty consistent since I've known you",
+          "Shifted noticeably in the last few years",
+          "Gradually evolved over a long time",
+          "Had one or two big turning points",
+          "I'm not sure -- you don't talk about it much"
+        ]
+      },
+      {
+        q: "When I change my mind about something important, you usually find out because:",
+        opts: [
+          "You tell me directly",
+          "I notice your behavior or interests shifting",
+          "You bring up a new idea or project related to it",
+          "Someone else mentions it",
+          "You don't really change your mind often"
+        ]
+      },
+      {
+        q: "The biggest way I've surprised you over time is:",
+        opts: [
+          "You turned out to be more emotional/sensitive than you first appeared",
+          "You turned out to be more ambitious than I expected",
+          "You developed interests or skills I didn't see coming",
+          "Your values or priorities shifted in unexpected ways",
+          "You haven't really surprised me -- what I see is what I get"
+        ]
+      },
+      {
+        q: "My greatest UNRECOGNIZED strength is:",
+        opts: [
+          "How much you care about people -- shown through actions, not words",
+          "Your ability to see patterns and connections others miss",
+          "How calm you stay when everything is chaotic",
+          "Your creativity -- more creative than you realize",
+          "Your patience with people who are struggling",
+          "Your ability to make other people feel capable"
+        ]
+      },
+      {
+        q: "If you could change ONE thing about how I operate:",
+        opts: [
+          "You take on too much and don't ask for help",
+          "You could be more emotionally present",
+          "You move too fast and don't always bring me along",
+          "You could relax more -- not everything needs to be optimized",
+          "You could talk about what you're feeling more often",
+          "Honestly, nothing major comes to mind"
+        ]
+      },
+      {
+        q: "The thing you most want me to know that you've maybe never said:",
+        opts: [
+          "I'm proud of you",
+          "You don't have to carry everything alone",
+          "I see how hard you work, even when you think no one notices",
+          "I wish we had more unstructured time together",
+          "You're enough, even when you're not building something",
+          "I trust your judgment more than you think I do"
+        ]
+      }
+    ]
+  },
+  beta: {
+    intro: "doing a self-improvement thing and want honest takes from people who actually know me. no names stored, i won't see your raw answers -- my system just pulls patterns. takes like 4 min. just pick what feels right.",
+    questions: [
+      {
+        q: "When I'm under pressure, I tend to:",
+        opts: [
+          "Talk more, take on more, speed up",
+          "Go quiet and disappear into a project",
+          "Get short or irritable",
+          "Seem exactly the same on the surface",
+          "I honestly don't know -- I don't see you stressed often"
+        ]
+      },
+      {
+        q: "Has there been a time I forgot something important to you or was harder to reach?",
+        opts: [
+          "Yeah, and it was clearly because you were overloaded with work",
+          "Yeah, but I don't think you realized you did it",
+          "Not really -- you're pretty reliable",
+          "Yeah, but I didn't take it personally",
+          "I can't think of a specific time"
+        ]
+      },
+      {
+        q: "I decompress by:",
+        multi: true, max: 2,
+        opts: [
+          "Watching TV / media",
+          "Working on a tech project",
+          "Exercise or something physical",
+          "Researching something new",
+          "Talking to family or friends",
+          "I'm not sure -- I don't see that side much"
+        ]
+      },
+      {
+        q: "If something went wrong in your life, would you call me first?",
+        opts: [
+          "Yeah -- you'd have a plan within 5 minutes",
+          "Yeah -- you'd listen and then help me figure it out",
+          "Maybe -- depends on the type of problem",
+          "Probably not first, but eventually",
+          "No -- I'd call someone else, then tell you later"
+        ]
+      },
+      {
+        q: "Have I ever told you I was struggling with something?",
+        opts: [
+          "Yeah, openly and directly",
+          "Yeah, but only once or twice and it felt rare",
+          "Not really -- you're usually the one helping ME",
+          "You've hinted at it but didn't go deep",
+          "I can tell when something's off, but you don't say it"
+        ]
+      },
+      {
+        q: "Being my kid is like...",
+        opts: [
+          "Having a coach -- you push me to be better",
+          "Having a safety net -- I know you've got my back no matter what",
+          "Having a mentor -- you teach me how to think about things",
+          "Having a friend who also happens to be my parent",
+          "It's complicated -- a mix of all of the above"
+        ]
+      },
+      {
+        q: "Have I changed noticeably in the last few years?",
+        opts: [
+          "Yeah -- you seem more focused or driven",
+          "Yeah -- you seem more relaxed or confident",
+          "Yeah -- your interests have shifted in new directions",
+          "Not really -- pretty much the same person",
+          "I'm not sure -- I don't see you often enough to tell"
+        ]
+      },
+      {
+        q: "When I'm not working, you mostly see me:",
+        opts: [
+          "On your phone/computer working on something anyway",
+          "Watching TV or relaxing with family",
+          "Talking about ideas or plans",
+          "Doing something hands-on -- cooking, fixing, building",
+          "I rarely see you NOT working"
+        ]
+      },
+      {
+        q: "My greatest UNRECOGNIZED strength is:",
+        opts: [
+          "How much you care -- shown through actions, not words",
+          "Your ability to see connections and patterns others miss",
+          "How calm you are under pressure",
+          "How much you sacrifice without drawing attention to it",
+          "Your ability to make people feel like they can figure things out",
+          "Your curiosity -- always learning something new"
+        ]
+      },
+      {
+        q: "The thing you most want me to know:",
+        opts: [
+          "I'm proud of you",
+          "You don't have to have everything figured out for me",
+          "I notice more than you think I do",
+          "I wish we talked more -- not about logistics, just talked",
+          "You're a bigger influence on me than you probably realize",
+          "Thank you"
+        ]
+      }
+    ]
+  },
+  gamma: {
+    intro: "doing a self-improvement thing and want feedback from people who've known me at different points. no names stored, i won't see your raw answers. takes about 4 min. just go with your gut on these.",
+    questions: [
+      {
+        q: "Growing up, when I was upset or stressed, I would:",
+        opts: [
+          "Get loud or intense about it",
+          "Go quiet and withdraw",
+          "Try to fix whatever caused it immediately",
+          "Act like nothing was wrong",
+          "I honestly don't remember clearly"
+        ]
+      },
+      {
+        q: "Back then, I was the kind of person who:",
+        opts: [
+          "Always had a plan or a project going",
+          "Was more go-with-the-flow and easygoing",
+          "Was intense about the things I cared about, relaxed about everything else",
+          "Kept to myself mostly",
+          "Was different depending on who was around"
+        ]
+      },
+      {
+        q: "When I needed help, even back then, I would:",
+        opts: [
+          "Ask for it directly",
+          "Figure it out alone",
+          "Get frustrated but not ask",
+          "Help everyone else first and deal with my own stuff last",
+          "I don't remember you ever seeming like you needed help"
+        ]
+      },
+      {
+        q: "The version of me you remember most clearly is:",
+        opts: [
+          "The protector -- always looking out for people",
+          "The builder -- always making or figuring something out",
+          "The joker -- funny, quick, didn't take things too seriously",
+          "The intense one -- passionate, sometimes too much",
+          "The quiet one -- more internal than people realized"
+        ]
+      },
+      {
+        q: "Compared to back then, I seem:",
+        opts: [
+          "More focused and driven",
+          "More settled and confident",
+          "Basically the same person, just older",
+          "Different in ways that are hard to put into words",
+          "I don't have enough recent contact to say"
+        ]
+      },
+      {
+        q: "The thing about me that hasn't changed at all is:",
+        opts: [
+          "Your loyalty to people you care about",
+          "Your need to understand how things work",
+          "Your stubbornness when you believe in something",
+          "Your sense of humor",
+          "Your independence -- always doing your own thing"
+        ]
+      },
+      {
+        q: "If something went wrong in your life, would you call me?",
+        opts: [
+          "Yes -- you'd help me think through it",
+          "Yes -- but more for emotional support than solutions",
+          "Maybe -- depends on what it was",
+          "Probably not -- we're not in that rhythm right now",
+          "I'd want to but I'd probably hesitate"
+        ]
+      },
+      {
+        q: "Have I ever let you down in a way that stuck with you?",
+        opts: [
+          "No -- you've always showed up when it mattered",
+          "Yes, but I understand why",
+          "Yes, and it's something I still think about",
+          "Not really -- we just drifted apart for a while",
+          "I don't think about it that way"
+        ]
+      },
+      {
+        q: "My greatest strength that I probably don't see in myself is:",
+        opts: [
+          "How much you care -- even when you don't show it",
+          "Your ability to figure anything out",
+          "How steady you are when things fall apart",
+          "Your willingness to fight for people",
+          "You're smarter than you give yourself credit for",
+          "You make people feel like things are going to be okay"
+        ]
+      },
+      {
+        q: "The thing you most want me to know:",
+        opts: [
+          "I'm proud of who you became",
+          "I wish we'd stayed closer",
+          "You helped me more than you realize",
+          "I see you -- even when it doesn't seem like it",
+          "We're more alike than either of us admits",
+          "Thank you for not giving up on us"
+        ]
+      }
+    ]
+  }
+};
+
+let currentQ = 0;
+let answers = {};
+let surveyId = null;
+let questions = [];
+
+function init() {
+  const params = new URLSearchParams(window.location.search);
+  surveyId = params.get('r') || 'alpha';
+  const survey = SURVEYS[surveyId];
+  if (!survey) { document.body.innerHTML = '<p style="text-align:center;padding:40px;color:#888">Invalid survey link.</p>'; return; }
+
+  document.getElementById('introText').textContent = survey.intro;
+  questions = survey.questions;
+  renderQuestions();
+  showQuestion(0);
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionsContainer');
+  questions.forEach((q, i) => {
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'q' + i;
+    let html = `<div class="qnum">Question ${i+1} of ${questions.length}</div><h3>${q.q}</h3>`;
+    if (q.multi) html += `<div class="multi-hint">Pick up to ${q.max || 2}</div>`;
+    q.opts.forEach((opt, j) => {
+      html += `<button class="option ${q.multi ? 'multi' : ''}" data-q="${i}" data-o="${j}" onclick="pickOption(${i},${j},${!!q.multi},${q.max||2})">${opt}</button>`;
+    });
+    card.innerHTML = html;
+    container.appendChild(card);
+  });
+}
+
+function pickOption(qi, oi, multi, max) {
+  if (multi) {
+    if (!answers[qi]) answers[qi] = [];
+    const idx = answers[qi].indexOf(oi);
+    if (idx > -1) { answers[qi].splice(idx, 1); }
+    else if (answers[qi].length < max) { answers[qi].push(oi); }
+    document.querySelectorAll(`[data-q="${qi}"]`).forEach(btn => {
+      btn.classList.toggle('selected', answers[qi].includes(parseInt(btn.dataset.o)));
+    });
+  } else {
+    answers[qi] = oi;
+    document.querySelectorAll(`[data-q="${qi}"]`).forEach(btn => {
+      btn.classList.toggle('selected', parseInt(btn.dataset.o) === oi);
+    });
+  }
+  updateNav();
+}
+
+function showQuestion(idx) {
+  document.querySelectorAll('.question-card').forEach(c => c.classList.remove('active'));
+  const card = document.getElementById('q' + idx);
+  if (card) card.classList.add('active');
+  currentQ = idx;
+  updateNav();
+  document.getElementById('progressFill').style.width = ((idx + 1) / questions.length * 100) + '%';
+}
+
+function updateNav() {
+  const hasAnswer = answers[currentQ] !== undefined && (Array.isArray(answers[currentQ]) ? answers[currentQ].length > 0 : true);
+  document.getElementById('nextBtn').disabled = !hasAnswer;
+  document.getElementById('nextBtn').textContent = currentQ === questions.length - 1 ? 'Submit' : 'Next →';
+  document.getElementById('backBtn').style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+}
+
+function goNext() {
+  if (currentQ < questions.length - 1) {
+    showQuestion(currentQ + 1);
+  } else {
+    submitSurvey();
+  }
+}
+
+function goBack() {
+  if (currentQ > 0) showQuestion(currentQ - 1);
+}
+
+function submitSurvey() {
+  // Encode answers as compact string: respondent|q1answer|q2answer|...
+  // Multi-select joins with +
+  const parts = [surveyId];
+  questions.forEach((q, i) => {
+    const ans = answers[i];
+    if (Array.isArray(ans)) {
+      parts.push(ans.join('+'));
+    } else {
+      parts.push(String(ans));
+    }
+  });
+  const code = btoa(parts.join('|')).replace(/=/g, '');
+
+  // Show done screen with code
+  document.getElementById('questionsContainer').style.display = 'none';
+  document.getElementById('navRow').style.display = 'none';
+  document.getElementById('introBlock').style.display = 'none';
+  document.getElementById('progressFill').style.width = '100%';
+
+  const done = document.getElementById('doneScreen');
+  done.innerHTML = `
+    <div class="checkmark">✓</div>
+    <h2>Done. Thank you.</h2>
+    <p style="margin-bottom:20px">One last thing -- text this code back so the results get captured:</p>
+    <div style="background:#1a1a2e;padding:16px;border-radius:10px;margin:16px 0;word-break:break-all;font-family:monospace;font-size:13px;color:#4fc3f7;user-select:all;-webkit-user-select:all" id="codeBlock">${code}</div>
+    <button onclick="copyCode()" style="padding:12px 24px;background:#4fc3f7;color:#0a0a0f;font-weight:600;border:none;border-radius:10px;cursor:pointer;font-size:15px" id="copyBtn">Copy Code</button>
+    <p style="margin-top:16px;color:#666;font-size:13px">Just paste it in a text back to the person who sent you this link.</p>
+  `;
+  done.style.display = 'block';
+}
+
+function copyCode() {
+  const code = document.getElementById('codeBlock').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    document.getElementById('copyBtn').textContent = 'Copied ✓';
+    document.getElementById('copyBtn').style.background = '#2e7d32';
+  }).catch(() => {
+    // Fallback for older browsers
+    const range = document.createRange();
+    range.selectNode(document.getElementById('codeBlock'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+init();
+</script>
+</body>
+</html>
