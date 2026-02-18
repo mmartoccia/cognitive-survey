@@ -27,7 +27,7 @@ input[type="radio"], input[type="checkbox"] { margin-right: 10px; accent-color: 
 </head>
 <body>
 <h1>Cognitive Profile Survey</h1>
-<p class="subtitle">15 quick multiple-choice questions about how you see Mike. Takes ~3 minutes. Your answers are private.</p>
+<p class="subtitle">15 quick multiple-choice questions about working with Mike. Takes ~3 minutes. Your answers are private.</p>
 
 <div id="progress" class="progress"></div>
 <form id="survey">
@@ -45,21 +45,21 @@ input[type="radio"], input[type="checkbox"] { margin-right: 10px; accent-color: 
 
 <script>
 const questions = [
-  {q: "Under pressure, Mike tends to:", opts: ["Talk more, take on more", "Go quiet and disappear into a project", "Get short or irritable", "Seem the same but small things change", "Cycle between several"]},
-  {q: "When overwhelmed, his first sign is:", opts: ["Slower message responses", "Forgets small things", "Hyperfocuses on one thing", "Sleep/eating changes", "Starts planning something new", "Can't tell when overwhelmed"]},
-  {q: "When he needs help:", opts: ["Asks directly", "Hints but doesn't ask", "Handles it alone", "Doesn't ask, things fall through", "Only asks one specific person"]},
-  {q: "His top 2 ways to decompress:", opts: ["TV/media", "Tinker/build", "Exercise", "Read/research", "Social time", "Sleep", "Doesn't decompress"], multi: true, max: 2},
-  {q: "His emotional vulnerability level:", opts: ["Very easy, shares openly", "Shares after processing alone first", "Rarely vulnerable, have to pull it out", "Expresses through actions not words", "Depends on topic"]},
-  {q: "Being around Mike feels like:", opts: ["Co-strategist", "Protector", "Whirlwind", "Quiet anchor", "Mix depending on context"]},
-  {q: "You have least access to his:", opts: ["Work stress", "Fears about future", "What he's feeling in the moment", "Creative/project world", "Political/philosophical thinking", "Good access to all"]},
-  {q: "Who worries more about money:", opts: ["He worries more", "I worry more", "Same amount, different things", "Neither worries much", "Shifts depending"]},
-  {q: "His relationship with money is:", opts: ["Careful planner", "Strategic spender", "Anxious even when fine", "Generous with others, tight with self", "Doesn't think about it", "Depends on season"]},
-  {q: "His worldview has:", opts: ["Stayed consistent", "Shifted noticeably recently", "Gradually evolved", "One or two big turning points", "Not sure, doesn't talk about it"]},
-  {q: "When he changes his mind, you find out by:", opts: ["He tells directly", "Notice behavior shifting", "He brings up a new idea/project", "Someone else mentions it", "He doesn't change his mind often"]},
-  {q: "His biggest surprise over time:", opts: ["More emotional/sensitive than appeared", "More ambitious than expected", "Unexpected interests/skills", "Values shifted unexpectedly", "No surprises, WYSIWYG"]},
-  {q: "His unrecognized strength:", opts: ["Cares through actions not words", "Sees patterns others miss", "Calm in chaos", "More creative than realizes", "Patient with struggling people", "Makes others feel capable"]},
-  {q: "One thing he should change:", opts: ["Takes on too much", "Could be more emotionally present", "Moves too fast, doesn't bring people along", "Could relax more", "Could talk about feelings more", "Nothing major"]},
-  {q: "What you want him to know:", opts: ["I'm proud of you", "Don't have to carry everything alone", "I see how hard you work", "Wish we had more unstructured time", "You're enough even when not building", "I trust your judgment more than you think"]}
+  {q: "Under pressure at work, Mike tends to:", opts: ["Take on more and speed up", "Go quiet and focus deeply on one thing", "Get more direct or short", "Seem the same but subtle things shift", "Depends on the situation"]},
+  {q: "When the team is under a tight deadline, his first move is:", opts: ["Take charge and delegate", "Dive into the work himself", "Rally the team and check in on people", "Get strategic -- reprioritize and cut scope", "Stay calm and let the process work"]},
+  {q: "His communication style in meetings is:", opts: ["Direct and to the point", "Asks a lot of questions first", "Big picture, connects ideas across topics", "Quiet until he has something specific to say", "Adapts to whoever he's talking to"]},
+  {q: "How he handles disagreement on the team:", opts: ["Addresses it head-on", "Listens to all sides then decides", "Finds a creative middle ground", "Lets people work it out themselves", "Picks his battles carefully"]},
+  {q: "His leadership style is closest to:", opts: ["Coach -- develops people through challenges", "Strategist -- always thinking three moves ahead", "Builder -- creates systems and processes", "Connector -- brings the right people together", "Mix depending on what's needed"]},
+  {q: "Working with Mike feels like:", opts: ["Co-strategist -- thinking through problems together", "High energy -- lots of ideas, fast pace", "Steady hand -- calm and structured", "Mentor -- you learn a lot", "Mix depending on the project"]},
+  {q: "What he's best at professionally:", opts: ["Seeing patterns others miss", "Breaking down complex problems", "Getting people aligned on a direction", "Building things from scratch", "Making the complicated feel simple", "Connecting ideas across different domains"]},
+  {q: "Where he could improve as a leader:", opts: ["Takes on too much himself", "Could delegate more", "Moves fast, doesn't always bring everyone along", "Could slow down and celebrate wins more", "Could be more patient with slower processes", "Nothing major comes to mind"]},
+  {q: "How he reacts when something goes wrong:", opts: ["Immediately starts problem-solving", "Stays calm, almost too calm", "Gets frustrated but channels it into action", "Takes responsibility even when it's not his fault", "Depends on the severity"]},
+  {q: "His biggest professional blind spot:", opts: ["Doesn't realize how much he takes on", "Assumes others see what he sees", "Moves to the next thing before finishing the last", "Underestimates his own impact", "Hard to tell -- pretty self-aware", "Not sure"]},
+  {q: "When he's excited about an idea, he:", opts: ["Starts building it immediately", "Talks through it with anyone who'll listen", "Maps it out strategically before acting", "Gets quiet and researches deeply", "All of the above at different times"]},
+  {q: "How he's changed professionally since you've known him:", opts: ["More focused and strategic", "More confident in his direction", "Taken on bigger challenges", "Hasn't changed much -- consistent", "Hard to say, haven't known him long enough"]},
+  {q: "His unrecognized strength at work:", opts: ["Cares more about the team than he shows", "Sees connections others miss", "Calm under pressure", "More creative than people realize", "Makes others feel capable", "Asks the right questions"]},
+  {q: "One thing that makes him different from other leaders:", opts: ["Actually listens", "Thinks in systems, not just tasks", "Willing to challenge the status quo", "Invests in people without expecting credit", "Balances technical depth with big picture", "Hard to pin down one thing"]},
+  {q: "If you could tell him one professional thing:", opts: ["You're a strong leader, trust it", "You don't have to carry everything yourself", "The team sees how hard you work", "Slow down sometimes -- it's okay", "Your ideas have more impact than you think", "Keep doing what you're doing"]}
 ];
 
 const form = document.getElementById('survey');
